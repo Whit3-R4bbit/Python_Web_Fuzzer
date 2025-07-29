@@ -1,17 +1,25 @@
 import requests
 import asyncio
+import aiohttp
+import time
 
-async def send_request(path):
+async def send_request(session, path):
     
-    response = requests.get("https://www.wikipedia.org/" + path)
-    print(response.url + " " + str(response.status_code))
+    async with session.get("http://localhost:8080/" + path) as resp:
+        return resp
     
 
 async def main():
 
     f = open("common.txt", "r")
-    for x in f:
-        x = x.strip()
-        asyncio.create_task(send_request(x))      
+    
+    async with aiohttp.ClientSession() as session:
+        value = [send_request(session, path) for path in f]
+        results = await asyncio.gather(*value)
+        
 
-asyncio.run(main())
+
+if __name__ == "__main__":
+    starttime = time.time()
+    asyncio.run(main())
+    print(time.time() - starttime)
